@@ -233,6 +233,11 @@ func getTplDeep(root, file, parent string, t *template.Template) (*template.Temp
 	return t, allSub, nil
 }
 
+// GetTemplate 暴露beego的模版获取，不使用缓存处理  BY:ERA
+func GetTemplate(root, file string, others ...string) (t *template.Template, err error) {
+	return getTemplate(root, file, others...)
+}
+
 func getTemplate(root, file string, others ...string) (t *template.Template, err error) {
 	t = template.New(file).Delims(BConfig.WebConfig.TemplateLeft, BConfig.WebConfig.TemplateRight).Funcs(beegoTplFuncMap)
 	var subMods [][]string
