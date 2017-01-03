@@ -231,7 +231,7 @@ func (c *Controller) renderTemplate() (bytes.Buffer, error) {
 	if c.TplPrefix != "" {
 		c.TplName = c.TplPrefix + c.TplName
 	}
-	if BConfig.RunMode == DEV {
+	if BConfig.RunMode == DEV || BConfig.RunMode == "tpl" {
 		buildFiles := []string{c.TplName}
 		if c.Layout != "" {
 			buildFiles = append(buildFiles, c.Layout)

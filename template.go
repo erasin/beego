@@ -45,7 +45,7 @@ var (
 // writing the output to wr.
 // A template will be executed safely in parallel.
 func ExecuteTemplate(wr io.Writer, name string, data interface{}) error {
-	if BConfig.RunMode == DEV {
+	if BConfig.RunMode == DEV || BConfig.RunMode == "tpl" {
 		templatesLock.RLock()
 		defer templatesLock.RUnlock()
 	}
