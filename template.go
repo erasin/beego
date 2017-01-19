@@ -33,13 +33,21 @@ import (
 var (
 	beegoTplFuncMap = make(template.FuncMap)
 	// beeTemplates caching map and supported template file extensions.
-	beeTemplates  = make(map[string]*template.Template)
+	beeTemplates = make(map[string]map[string]*template.Template)
+	// beeTemplates  = make(map[string]*template.Template)
 	templatesLock sync.RWMutex
 	// beeTemplateExt stores the template extension which will build
 	beeTemplateExt = []string{"tpl", "html"}
 	// beeTemplatePreprocessors stores associations of extension -> preprocessor handler
 	beeTemplateEngines = map[string]templatePreProcessor{}
+	// viewName 当前模板名称
+	viewName = "default"
 )
+
+// func init() {
+// 	beeTe := make(map[string]*template.Template)
+// 	beeTemplates = make(map[string]{beeTe})
+// }
 
 // ExecuteTemplate applies the template with name  to the specified data object,
 // writing the output to wr.
@@ -49,7 +57,8 @@ func ExecuteTemplate(wr io.Writer, name string, data interface{}) error {
 		templatesLock.RLock()
 		defer templatesLock.RUnlock()
 	}
-	if t, ok := beeTemplates[name]; ok {
+	// Debug("tpl :", viewName, beeTemplates[viewName])
+	if t, ok := beeTemplates[viewName][name]; ok {
 		var err error
 		if t.Lookup(name) != nil {
 			err = t.ExecuteTemplate(wr, name, data)
@@ -149,9 +158,36 @@ func AddTemplateExt(ext string) {
 	beeTemplateExt = append(beeTemplateExt, ext)
 }
 
+// SetTemplateViewName 设定使用的模板
+func SetTemplateViewName(name ...string) {
+	if len(name) == 0 {
+		viewName = "default"
+	} else {
+		viewName = name[0]
+	}
+	// Debug("tpl set", viewName)
+}
+
+// BuildTemplateWithName 生成带有名称的模板
+func BuildTemplateWithName(name string, dir string, files ...string) error {
+	viewName = name
+	return BuildTemplate(dir, files...)
+}
+
 // BuildTemplate will build all template files in a directory.
 // it makes beego can render any template file in view directory.
 func BuildTemplate(dir string, files ...string) error {
+	if BConfig.RunMode == DEV || BConfig.RunMode == "tpl" {
+		if _, ok := beeTemplates[viewName]; ok {
+			// 更新删除
+			// Debug("tpl delete", viewName)
+			templatesLock.RLock()
+			delete(beeTemplates, viewName)
+			templatesLock.RUnlock()
+		}
+	}
+
+	// Debug("tpl build", viewName)
 	if _, err := os.Stat(dir); err != nil {
 		if os.IsNotExist(err) {
 			return nil
@@ -170,6 +206,7 @@ func BuildTemplate(dir string, files ...string) error {
 		return err
 	}
 	buildAllFiles := len(files) == 0
+	tpls := make(map[string]*template.Template)
 	for _, v := range self.files {
 		for _, file := range v {
 			if buildAllFiles || utils.InSlice(file, files) {
@@ -186,12 +223,14 @@ func BuildTemplate(dir string, files ...string) error {
 				if err != nil {
 					logs.Trace("parse template err:", file, err)
 				} else {
-					beeTemplates[file] = t
+					tpls[file] = t
 				}
 				templatesLock.Unlock()
 			}
 		}
 	}
+	// Debug("tpls", tpls)
+	beeTemplates[viewName] = tpls
 	return nil
 }
 

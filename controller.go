@@ -231,21 +231,21 @@ func (c *Controller) renderTemplate() (bytes.Buffer, error) {
 	if c.TplPrefix != "" {
 		c.TplName = c.TplPrefix + c.TplName
 	}
-	if BConfig.RunMode == DEV || BConfig.RunMode == "tpl" {
-		buildFiles := []string{c.TplName}
-		if c.Layout != "" {
-			buildFiles = append(buildFiles, c.Layout)
-			if c.LayoutSections != nil {
-				for _, sectionTpl := range c.LayoutSections {
-					if sectionTpl == "" {
-						continue
-					}
-					buildFiles = append(buildFiles, sectionTpl)
-				}
-			}
-		}
-		BuildTemplate(BConfig.WebConfig.ViewsPath, buildFiles...)
-	}
+	// if BConfig.RunMode == DEV || BConfig.RunMode == "tpl" {
+	// 	buildFiles := []string{c.TplName}
+	// 	if c.Layout != "" {
+	// 		buildFiles = append(buildFiles, c.Layout)
+	// 		if c.LayoutSections != nil {
+	// 			for _, sectionTpl := range c.LayoutSections {
+	// 				if sectionTpl == "" {
+	// 					continue
+	// 				}
+	// 				buildFiles = append(buildFiles, sectionTpl)
+	// 			}
+	// 		}
+	// 	}
+	// 	BuildTemplate(BConfig.WebConfig.ViewsPath, buildFiles...)
+	// }
 	return buf, ExecuteTemplate(&buf, c.TplName, c.Data)
 }
 
